@@ -26,5 +26,37 @@ for j=1:size(X, 2);
     X(:, j)=(X(:, j)-mu(j))./sigma(j);
 end
 
+ k=200;
+ 
+ %initilize dictionary and alpha
+ randX=randperm(size(X, 2));
+ D=X(:, randX(1:k));
+ alpha=zeros(k, size(X, 2));  
+
+%Sparse Coding
+iters=0;
+while iters<15
+    for j=1:size(X, 2)
+        cvx_begin quiet
+        variable A(k);
+        minimize(.5*norm(D*A-X(:, j)));
+        subject to;
+        norm(A, 1) <= 10
+        cvx_end
+        alpha(:, j)=A;
+    end 
+    
+    iters=iters+1;
+
+    %Dictionary Learning
+    D=X*pinv(alpha);
+    D=D./repmat(sqrt(sum(D.^2)),[size(D, 1), 1]);
+
+    cd('/home/mpcr/Desktop/butterflies-master/spams-matlab');
+    start_spams;
+    displayPatches(D); colormap('gray');
+    pause;
+end
+
 
 
